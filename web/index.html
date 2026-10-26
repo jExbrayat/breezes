@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alpine Breeze Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <aside id="panel">
+    <header class="panel-head">
+      <div>
+        <h1>Alpine Breeze Atlas</h1>
+        <p class="sub">Thermal breezes derived from the terrain alone · clear, calm summer day</p>
+      </div>
+      <button id="collapse" class="icon-btn" aria-label="Collapse panel" title="Collapse panel">‹</button>
+    </header>
+
+    <section class="block">
+      <label class="eyebrow" for="run">Model run</label>
+      <select id="run"></select>
+      <p class="run-date" id="run-date"></p>
+    </section>
+
+    <section class="block time-block">
+      <div class="clock">
+        <span class="clock-solar" id="clock-solar">--:--</span>
+        <span class="clock-unit">solar time</span>
+        <span class="clock-cest" id="clock-cest">--:-- CEST</span>
+      </div>
+      <div class="slider-row">
+        <button id="play" class="icon-btn play" aria-label="Play the day" title="Play the day">▶</button>
+        <input id="hour" type="range" min="0" max="23" step="1" value="14" aria-label="Hour of the day">
+      </div>
+      <canvas id="cycle" height="64" aria-label="Share of valleys with up-valley (red) and down-valley (blue) wind, per hour"></canvas>
+      <p class="hint">Bars: share of valley segments blowing <b class="up">up-valley</b> / <b class="down">down-valley</b>, hour by hour.</p>
+    </section>
+
+    <section class="block">
+      <h2 class="eyebrow">Layers</h2>
+      <label class="toggle"><input type="checkbox" id="show-arrows" checked> Valley winds <span class="dim">(arrows)</span></label>
+      <label class="toggle"><input type="checkbox" id="show-particles" checked> Near-surface flow <span class="dim">(particles: slope + valley)</span></label>
+      <label class="toggle"><input type="checkbox" id="show-ref" checked> Pilots' breeze map <span class="dim">(held-out reference)</span></label>
+      <label class="toggle"><input type="checkbox" id="show-agree"> Colour pilots' map by agreement</label>
+    </section>
+
+    <section class="block legend">
+      <h2 class="eyebrow">Legend</h2>
+      <div class="leg"><span class="sw arrow up"></span> up-valley wind (anabatic system)</div>
+      <div class="leg"><span class="sw arrow down"></span> down-valley wind (night drainage)</div>
+      <div class="leg"><span class="sw ref"></span> pilots' map, arrow = breeze direction</div>
+      <div class="leg agree-leg"><span class="sw dot good"></span> agrees <span class="sw dot mid"></span> across / calm <span class="sw dot bad"></span> opposite</div>
+      <p class="hint">Arrow length ∝ speed, thickness ∝ catchment size. Click the map for the modelled wind at a point.</p>
+    </section>
+
+    <section class="block">
+      <h2 class="eyebrow">Agreement with pilots' map · 13–16 h solar</h2>
+      <div class="table-wrap">
+        <table id="scores">
+          <thead><tr><th>Region</th><th class="num">n</th><th class="num">Model</th><th class="num">Naive</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="hint">Share of sample points where the modelled wind goes the drawn way. <b>Naive</b> = "breeze always blows up the nearest valley". The physics earns its keep only where it beats that.</p>
+    </section>
+
+    <footer class="block credits">
+      Terrain: Copernicus DEM GLO-90 · Reference: “Brises des Alpes”, F. Largeault &amp; contributors · Model notes in <code>CLAUDE.md</code>
+    </footer>
+  </aside>
+  <button id="expand" class="icon-btn expand" aria-label="Show panel" title="Show panel" hidden>›</button>
+  <main id="map"></main>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

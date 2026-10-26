@@ -1,0 +1,12 @@
+region                               n | model sign  hit45    cos | base sign  hit45    cos
+ALL                               7195 |       0.83   0.72   0.61 |      0.88   0.78   0.69
+Ain/Bugey/Jura                     186 |       0.65   0.46   0.28 |      0.85   0.66   0.62
+Alpes du sud et Autres            2575 |       0.90   0.82   0.75 |      0.95   0.88   0.84
+Bauges                             516 |       0.72   0.62   0.43 |      0.85   0.76   0.64
+Beaufortain-Mont-Blanc             196 |       0.95   0.89   0.86 |      0.97   0.91   0.89
+Belledonnes                        157 |       0.89   0.75   0.72 |      0.87   0.75   0.68
+Bornes-Aravis                      467 |       0.94   0.84   0.80 |      0.96   0.83   0.82
+Chablais                           488 |       0.82   0.78   0.63 |      0.95   0.90   0.84
+Chartreuse                         413 |       0.70   0.58   0.36 |      0.80   0.67   0.52
+Lauzière-Maurienne-Tarantaise      335 |       0.87   0.84   0.72 |      0.93   0.89   0.81
+vercors-diois                     1862 |       0.76   0.59   0.46 |      0.74   0.59   0.41
