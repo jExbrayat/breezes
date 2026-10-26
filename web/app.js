@@ -378,8 +378,11 @@ async function loadRun(tag) {
   ]);
   state.meta = meta; state.field = new Int8Array(field); state.valley = new Int8Array(valley);
   state.samples = new Int8Array(samples);
-  $("run-date").textContent = meta.params._model === "naive"
+  const kind = meta.params._model;
+  $("run-date").textContent = kind === "naive"
     ? `Naive rule, no physics: along the nearest valley, up-valley while the sun is up · ${meta.date}`
+    : kind === "arome"
+    ? `AROME HD (1.3 km) 10 m wind · mean of ${meta.params.days.length} clear calm July days: ${meta.params.days.join(", ")}`
     : `Physical model · simulated day ${meta.date} · clear sky, no synoptic wind`;
   $("hour").max = meta.hours.length - 1;
   computeCycle();

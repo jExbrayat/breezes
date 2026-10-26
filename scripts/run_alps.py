@@ -7,7 +7,7 @@ from pathlib import Path
 
 import numpy as np
 
-from breezes import dem, model, naive, reference, terrain, validate
+from breezes import arome, dem, model, naive, reference, terrain, validate
 from breezes.dem import ROOT
 
 OUT = ROOT / "out"
@@ -18,7 +18,7 @@ def main():
     ap.add_argument("--res", type=float, default=200.0)
     ap.add_argument("--date", default="2026-07-15")
     ap.add_argument("--tag", default="baseline")
-    ap.add_argument("--model", choices=["physics", "naive"], default="physics")
+    ap.add_argument("--model", choices=["physics", "naive", "arome"], default="physics")
     a = ap.parse_args()
 
     g = dem.load(res=a.res)
@@ -26,6 +26,9 @@ def main():
     if a.model == "naive":
         m = naive.NaiveModel(g, T, lat=45.3, lon=6.3)
         params = {"speed": m.speed}
+    elif a.model == "arome":
+        m = arome.AromeModel(g, T, lon=6.3)
+        params = {"source": "AROME France HD 10 m wind, composite of clear calm days", "days": m.days}
     else:
         m = model.BreezeModel(g, T, lat=45.3, lon=6.3)
         params = asdict(m.p)

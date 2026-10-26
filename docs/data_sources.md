@@ -203,3 +203,14 @@ All templates below returned 200 for a z12 tile over Chamonix (z12/x2126/y1459).
 - The exact RGI 7 file name (needs an Earthdata login).
 - The SHP CRS of the IGN CLC18 7z.
 - Max zooms marked "~" (swisstopo, EOX), which were not checked.
+
+## AROME historical 10 m wind (NWP baseline)
+
+- **Screening** (days): Open-Meteo historical-forecast API, `models=meteofrance_arome_france`
+  (2.5 km; 700 hPa wind, cloud, precip archived from 2024). No key; ~10k location-calls/day.
+- **Fields**: Open-Meteo open data on AWS, `https://openmeteo.s3.amazonaws.com/data/meteofrance_arome_france_hd/`
+  `wind_{u,v}_component_10m/chunk_<N>.om`, N = hours since 1970 // 108 (`static/meta.json`:
+  `chunk_time_length`). Regular 0.01° grid, 37.5–55.4 N × 12 W–16 E (1791 × 2801), south-west
+  origin. Layout changed: up to ~2024 `(lat*lon, time)`, 2025+ `(lat, lon, time)`. ~200 MB
+  per file; download whole (≈30 s) — remote partial reads via s3fs were orders of magnitude slower.
+  Read with `omfiles` (`uv run --group arome`). Values verified cell-for-cell against the API.

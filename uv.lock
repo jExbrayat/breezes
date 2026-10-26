@@ -37,6 +37,11 @@ dependencies = [
     { name = "scipy" },
 ]
 
+[package.dev-dependencies]
+arome = [
+    { name = "omfiles" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "matplotlib", specifier = ">=3.11.2" },
@@ -47,6 +52,9 @@ requires-dist = [
     { name = "rasterio", specifier = ">=1.5.2" },
     { name = "scipy", specifier = ">=1.18.1" },
 ]
+
+[package.metadata.requires-dev]
+arome = [{ name = "omfiles", specifier = ">=1.2.0" }]
 
 [[package]]
 name = "certifi"
@@ -462,6 +470,24 @@ wheels = [
 ]
 
 [[package]]
+name = "omfiles"
+version = "1.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/df/43/a8937afc980168ff1aef7350dafac7ce460592dc4f115bc2135c60fdc001/omfiles-1.2.0.tar.gz", hash = "sha256:ca42ebb260de73e937cb4a72d1867e34e7046f19105202c01d1455c72abf6895", size = 250491, upload-time = "2026-04-23T09:01:56.587Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/61/96/6f7f6036718779761fa00ccc11358ed1bc03a162e9dbd2fc4fd1d3de5800/omfiles-1.2.0-cp310-abi3-macosx_10_12_x86_64.whl", hash = "sha256:4298616241141234c53a1815f5f07b7262d1b3261f8fd73671cb7b62a28b914d", size = 1031482, upload-time = "2026-04-23T09:01:46.052Z" },
+    { url = "https://files.pythonhosted.org/packages/86/1b/c3f65a2c6bb5f1c236af66cb77acbd185ee657181cebb19398cbcc84c9e7/omfiles-1.2.0-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:05a04d1d3c3530954d81e471335053fdc5331d52323c332c66b99f1855a7871d", size = 1019385, upload-time = "2026-04-23T09:01:47.838Z" },
+    { url = "https://files.pythonhosted.org/packages/8f/78/44f3f9cfc4bdd13af9992386b538ca4ad0eeb3f22e692814ace004c8924e/omfiles-1.2.0-cp310-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:bb40290c7661978490ae43ec156ab0a14ccb2311f81d74ff7c5067c04094195e", size = 1297866, upload-time = "2026-04-23T09:01:49.412Z" },
+    { url = "https://files.pythonhosted.org/packages/8a/f2/d64d9f3424ccbcc94850fcaca04de05d1dd7db8d1c5bbfda63ee37159c3e/omfiles-1.2.0-cp310-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:525082edbf7d583d0215b9930debcea3addd1cb99144b610a5f00191a1191d39", size = 1089138, upload-time = "2026-04-23T09:01:50.793Z" },
+    { url = "https://files.pythonhosted.org/packages/ad/11/c9e9027fa32877f892567dc4eeffd3a4eb7e61ad24e28fd4bc5f76237827/omfiles-1.2.0-cp310-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:0d5754fdd07ce93e19e4302129963abb35257d04ed51b5fc4bfd89ee40d88b70", size = 1282944, upload-time = "2026-04-23T09:01:52.125Z" },
+    { url = "https://files.pythonhosted.org/packages/0b/5b/2f1b892c3764e71aaf9c7d5698bb3cc630d01d79c1632bf442ad8536fb32/omfiles-1.2.0-cp310-abi3-win_amd64.whl", hash = "sha256:fa81ae39c643e80246abdcef370e89d187d64511ba6cd72d4a88a2dc4f1ecb44", size = 869558, upload-time = "2026-04-23T09:01:53.657Z" },
+    { url = "https://files.pythonhosted.org/packages/49/3e/c32b9a7214eddea39e99a1ee78af67d796b544abd4354f3296022901a037/omfiles-1.2.0-cp310-abi3-win_arm64.whl", hash = "sha256:fd242b62d18923ed338e2a59419564d5b41a28438d8dd284e3f95eb9b59824ff", size = 1066576, upload-time = "2026-04-23T09:01:55.109Z" },
+]
+
+[[package]]
 name = "packaging"
 version = "26.3"
 source = { registry = "https://pypi.org/simple" }
@@ -599,15 +625,14 @@ wheels = [
 
 [[package]]
 name = "python-dateutil"
-version = "3.0.0"
+version = "2.9.0.post0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "six" },
-    { name = "tzdata" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/0e/df/f15f80383f152452d8985b36d95cb8751f901a3e0ff4cd27f7e118f168e2/python_dateutil-3.0.0.tar.gz", hash = "sha256:7ebcb3c29a92f3ceafe79a7a48a5c45677e9e004bbeec5742ac0bbb00560b7a2", size = 271066, upload-time = "2026-10-21T23:41:45.075Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/66/c0/0c8b6ad9f17a802ee498c46e004a0eb49bc148f2fd230864601a86dcf6db/python-dateutil-2.9.0.post0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3", size = 342432, upload-time = "2024-03-01T18:36:20.211Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5a/17/cebee01d1c0c1441174cf0456ddc91b280d79acb65340c05e41d77866ee8/python_dateutil-3.0.0-py2.py3-none-any.whl", hash = "sha256:3c79630202e4152c6add678446984236efe4f57e84d8e892aab0637bab82e9fd", size = 94659, upload-time = "2026-10-21T23:41:43.431Z" },
+    { url = "https://files.pythonhosted.org/packages/ec/57/56b9bcc3c9c6a792fcbaf139543cee77261f3651ca9da0c93f5c1221264b/python_dateutil-2.9.0.post0-py2.py3-none-any.whl", hash = "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427", size = 229892, upload-time = "2024-03-01T18:36:18.57Z" },
 ]
 
 [[package]]
@@ -724,13 +749,4 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/94/e7/b2c673351809dca68a0e064b6af791aa332cf192da575fd474ed7d6f16a2/six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81", size = 34031, upload-time = "2024-12-04T17:35:28.174Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274", size = 11050, upload-time = "2024-12-04T17:35:26.475Z" },
-]
-
-[[package]]
-name = "tzdata"
-version = "2026.5"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/d9/68/f1b440335057bfce71b6e50a9d09445aa2ecbd08359a337976627b8409e7/tzdata-2026.5.tar.gz", hash = "sha256:8cc73c0a0bfca7dbfa59235d60b2eff82231dee33f53d206db1acd9173cfc0a7", size = 200404, upload-time = "2026-10-03T09:23:14.143Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/94/21/1e5995a1c920cce14e4bffae20c665ec10e7ed03ab25e006cd741092b718/tzdata-2026.5-py2.py3-none-any.whl", hash = "sha256:b683bd1b6659ddcd810ff02ad09ba821d4bf1065072805063eb35c49617905ac", size = 347996, upload-time = "2026-10-03T09:23:12.535Z" },
 ]

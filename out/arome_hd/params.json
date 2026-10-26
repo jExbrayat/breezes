@@ -1,0 +1,14 @@
+{
+ "source": "AROME France HD 10 m wind, composite of clear calm days",
+ "days": [
+  "2024-07-05",
+  "2024-07-18",
+  "2025-07-05",
+  "2025-07-10",
+  "2025-07-11",
+  "2025-07-31"
+ ],
+ "_model": "arome",
+ "_date": "2026-07-15",
+ "_res": 200.0
+}

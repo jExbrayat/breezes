@@ -46,6 +46,17 @@ Per sample: **agree** ≤ 45° off · **opposite** ≥ 135° off · across/calm 
 |---|---|---|---|
 | naive_up_valley (no physics) | 0.78 | **0.09** | 0.88 |
 | v2_sourced_params | 0.71 | **0.12** | 0.82 |
+| arome_hd (NWP, 6-day composite) | 0.78 | **0.02** | 0.93 |
+
+**AROME baseline (2026-10-26).** Operational AROME France HD (1.3 km) 10 m wind, hourly
+mean of the 6 clear calm July days 2024–2025 selected by fixed criteria
+(`scripts/fetch_arome.py`: 700 hPa < 5 m/s, cloud < 20 %, dry), run as `--model arome`.
+Per single day: agree 0.66–0.78, opposite 0.02–0.09 (median ≈0.045), so the composite
+gains from averaging out day-to-day synoptic noise, but every single day already beats
+naive (0.09) and v2 (0.12). AROME's worst regions: Ain/Bugey/Jura (0.15 composite,
+up to 0.34 on one day), Chartreuse 0.05. **This is the bar the physics model must reach**;
+today it is far below. Caveats: real days include synoptic/plain flow (Rhône valley),
+reference arrows are coarse, nearest-cell 1.3 km field bilinearly put on 200 m.
 
 v2 opposite breakdown vs naive: 5.9 % shared (pilots' breeze against the drainage:
 convergences, cols → neither model), 6.3 % **new flips caused by the physics** (basins,
@@ -54,6 +65,10 @@ footprint leaking across ridges — Alpes du sud 129, Bauges 82, Chablais 59, Ch
 - [ ] Step 1: remove the 6.3 % physics-induced flips without losing the 3.1 % fixes
       (mass continuity / watershed-aware footprint)
 - [ ] Step 2: the 5.9 % shared cases (through-valley convergences, pass/col winds)
+
+- [ ] Diagnose where v2 is opposite but AROME agrees (per region / terrain class) —
+      structural hints only, never tune to AROME either
+- [ ] More AROME days (June/August, 2023 once screening data exists) to test robustness
 
 ### Validation (held-out — never tune on it)
 - [x] `reference.py`: KML parsed, direction from drawn closed-triangle arrowheads (273/291 lines)

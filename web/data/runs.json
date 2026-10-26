@@ -1,5 +1,14 @@
 [
  {
+  "tag": "arome_hd",
+  "date": "2026-07-15",
+  "model": "arome",
+  "agree": 0.780958999305073,
+  "opposite": 0.01862404447533009,
+  "sign": 0.927449617790132,
+  "mtime": 1793043015.8423486
+ },
+ {
   "tag": "naive_up_valley",
   "date": "2026-07-15",
   "model": "naive",
