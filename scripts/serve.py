@@ -6,6 +6,7 @@ Exports any run in out/ that is missing (or older) in web/data/ first, so
 import argparse
 import functools
 import http.server
+import json
 import sys
 
 from breezes.dem import ROOT
@@ -20,7 +21,8 @@ def stale_runs():
     out = []
     for f in sorted((ROOT / "out").glob("*/fields.npz")):
         meta = WEB / "data" / f.parent.name / "meta.json"
-        if not meta.exists() or meta.stat().st_mtime < f.stat().st_mtime:
+        if (not meta.exists() or meta.stat().st_mtime < f.stat().st_mtime
+                or json.loads(meta.read_text()).get("format") != export_web.FORMAT):
             out.append(f.parent.name)
     return out
 

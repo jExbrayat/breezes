@@ -1,12 +1,14 @@
-region                               n | model sign  hit45    cos | base sign  hit45    cos
-ALL                               7195 |       0.82   0.71   0.59 |      0.88   0.78   0.69
-Ain/Bugey/Jura                     186 |       0.66   0.47   0.30 |      0.85   0.66   0.62
-Alpes du sud et Autres            2575 |       0.89   0.80   0.73 |      0.95   0.88   0.84
-Bauges                             516 |       0.69   0.59   0.37 |      0.85   0.76   0.64
-Beaufortain-Mont-Blanc             196 |       0.94   0.88   0.82 |      0.97   0.91   0.89
-Belledonnes                        157 |       0.89   0.75   0.68 |      0.87   0.75   0.68
-Bornes-Aravis                      467 |       0.93   0.83   0.77 |      0.96   0.83   0.82
-Chablais                           488 |       0.81   0.75   0.61 |      0.95   0.90   0.84
-Chartreuse                         413 |       0.67   0.55   0.30 |      0.80   0.67   0.52
-Lauzière-Maurienne-Tarantaise      335 |       0.85   0.82   0.68 |      0.93   0.89   0.81
-vercors-diois                     1862 |       0.75   0.59   0.46 |      0.74   0.59   0.41
+                                       |   ---- model ----    |   ---- naive ----   
+region                               n |  agree  OPPOS   sign |  agree  OPPOS   sign
+ALL                               7195 |   0.71   0.12   0.82 |   0.78   0.09   0.88
+Ain/Bugey/Jura                     186 |   0.47   0.23   0.66 |   0.66   0.09   0.85
+Alpes du sud et Autres            2575 |   0.80   0.07   0.89 |   0.88   0.02   0.95
+Bauges                             516 |   0.59   0.22   0.69 |   0.76   0.11   0.85
+Beaufortain-Mont-Blanc             196 |   0.88   0.05   0.94 |   0.91   0.02   0.97
+Belledonnes                        157 |   0.75   0.06   0.89 |   0.75   0.08   0.87
+Bornes-Aravis                      467 |   0.83   0.06   0.93 |   0.83   0.03   0.96
+Chablais                           488 |   0.75   0.13   0.81 |   0.90   0.04   0.95
+Chartreuse                         413 |   0.55   0.27   0.67 |   0.67   0.17   0.80
+Lauzière-Maurienne-Tarantaise      335 |   0.82   0.13   0.85 |   0.89   0.07   0.93
+vercors-diois                     1862 |   0.59   0.15   0.75 |   0.59   0.19   0.74
+agree: within 45 deg · OPPOS: >= 135 deg off (target 0) · sign: legacy < 90 deg

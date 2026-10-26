@@ -165,21 +165,26 @@ map.on("moveend", () => { P.moving = false; particleLayer.reset(); });
 requestAnimationFrame(stepParticles);
 
 // ------------------------------------------------------------ pilots' lines
+// Each line is sampled every 400 m; each sample is classed per hour:
+// 1 agree (within 45°), 0 across or calm, -1 opposite (135° or more off).
 const refGroup = L.layerGroup().addTo(map);
-let refItems = [];
-function refColor(item) {
-  if (!state.show.agree) return css("--ref");
-  const a = item.line.agree ? item.line.agree[state.hour] : null;
-  if (a === null || a === undefined) return "#9a9a9a";
-  return a >= 0.5 ? css("--good") : a <= -0.3 ? css("--bad") : css("--mid");
-}
+const sampleGroup = L.layerGroup();
+const sampleRenderer = L.canvas({ padding: 0.3 });
+let refItems = [], sampleSegs = [];
+const sampleClass = (k) => state.samples[state.hour * state.meta.samples.n + k];
+const classColor = (c) => (c === 1 ? css("--good") : c === -1 ? css("--bad") : css("--mid"));
 function refTooltip(item) {
-  const L_ = item.line, a = L_.agree ? L_.agree[state.hour] : null;
-  const verdict = a === null || a === undefined ? "no samples"
-    : a >= 0.5 ? "model agrees" : a <= -0.3 ? "model blows the opposite way" : "model across / calm";
-  return `<div class="ref-tip"><b>${L_.name || "(unnamed)"}</b><br>${L_.region}<br>` +
-    `At ${$("clock-solar").textContent} solar: ${verdict}` +
-    (a === null || a === undefined ? "" : ` (cos = ${a.toFixed(2)})`) + `</div>`;
+  let agree = 0, across = 0, opp = 0;
+  for (const k of item.samples) {
+    const c = sampleClass(k);
+    if (c === 1) agree++; else if (c === -1) opp++; else across++;
+  }
+  const n = item.samples.length;
+  const crit = state.meta.criteria;
+  return `<div class="ref-tip"><b>${item.line.name || "(unnamed)"}</b><br>${item.line.region}<br>` +
+    `At ${$("clock-solar").textContent} solar, ${n} points:<br>` +
+    `<span class="good">${agree} agree</span> (≤ ${crit.agree_deg}°) · ${across} across/calm · ` +
+    `<span class="bad">${opp} opposite</span> (≥ ${crit.opposite_deg}°)</div>`;
 }
 function arrowHead(coords) {
   const tip = map.latLngToLayerPoint(coords[coords.length - 1]);
@@ -192,8 +197,9 @@ function arrowHead(coords) {
 }
 function buildRef() {
   refGroup.clearLayers();
+  sampleGroup.clearLayers();
   refItems = state.meta.ref.map((line) => {
-    const item = { line };
+    const item = { line, samples: [] };
     item.casing = L.polyline(line.coords, { color: "#1b1b1b", weight: 6, opacity: 0.55, interactive: false });
     item.main = L.polyline(line.coords, { color: css("--ref"), weight: 3.2, opacity: 1 });
     item.head = L.polygon(arrowHead(line.coords), { color: "#1b1b1b", weight: 1.2, fillColor: css("--ref"),
@@ -202,13 +208,29 @@ function buildRef() {
     [item.casing, item.main, item.head].forEach((l) => refGroup.addLayer(l));
     return item;
   });
+  const S = state.meta.samples;
+  sampleSegs = [];
+  for (let k = 0; k < S.n; k++) {
+    refItems[S.line[k]].samples.push(k);
+    const seg = L.polyline([[S.lat0[k], S.lon0[k]], [S.lat1[k], S.lon1[k]]],
+      { renderer: sampleRenderer, weight: 5, opacity: 1, lineCap: "butt", interactive: false });
+    sampleSegs.push(seg);
+    sampleGroup.addLayer(seg);
+  }
   styleRef();
 }
 function styleRef() {
+  const agree = state.show.agree;
   for (const it of refItems) {
-    const c = refColor(it);
-    it.main.setStyle({ color: c });
-    it.head.setStyle({ fillColor: c });
+    it.main.setStyle({ color: agree ? "#1b1b1b" : css("--ref"), weight: agree ? 1.5 : 3.2 });
+    it.casing.setStyle({ opacity: agree ? 0 : 0.55 });
+    it.head.setStyle({ fillColor: agree ? "#1b1b1b" : css("--ref") });
+  }
+  if (agree) {
+    sampleSegs.forEach((seg, k) => seg.setStyle({ color: classColor(sampleClass(k)) }));
+    if (state.show.ref) sampleGroup.addTo(map);
+  } else {
+    sampleGroup.remove();
   }
 }
 map.on("zoomend", () => refItems.forEach((it) => it.head.setLatLngs(arrowHead(it.line.coords))));
@@ -289,7 +311,11 @@ function bindToggle(id, key, onChange) {
 }
 bindToggle("show-arrows", "arrows", () => arrowLayer.reset());
 bindToggle("show-particles", "particles", () => particleLayer.reset());
-bindToggle("show-ref", "ref", () => (state.show.ref ? refGroup.addTo(map) : refGroup.remove()));
+bindToggle("show-ref", "ref", () => {
+  if (state.show.ref) refGroup.addTo(map); else refGroup.remove();
+  styleRef();
+  if (!state.show.ref) sampleGroup.remove();
+});
 bindToggle("show-agree", "agree", styleRef);
 
 $("collapse").addEventListener("click", () => {
@@ -325,13 +351,18 @@ function renderScores() {
   tb.innerHTML = "";
   const S = state.meta.scores;
   const keys = ["ALL", ...Object.keys(S).filter((k) => k !== "ALL").sort()];
+  const pct = (x) => Math.round(x * 100) + "%";
+  const isNaive = state.meta.params._model === "naive";
   for (const k of keys) {
-    const m = S[k].model.sign, b = S[k].baseline.sign;
-    const cls = m > b + 0.01 ? "win" : m < b - 0.01 ? "lose" : "";
+    const m = S[k].model, b = S[k].baseline;
+    // higher agree is better; lower opposite is better
+    const ca = isNaive ? "" : m.agree > b.agree + 0.01 ? "win" : m.agree < b.agree - 0.01 ? "lose" : "";
+    const co = isNaive ? "" : m.opposite < b.opposite - 0.01 ? "win" : m.opposite > b.opposite + 0.01 ? "lose" : "";
     const tr = document.createElement("tr");
     if (k === "ALL") tr.className = "all";
-    tr.innerHTML = `<td>${k === "ALL" ? "All regions" : k}</td><td class="num">${S[k].model.n}</td>` +
-      `<td class="num"><span class="${cls}">${Math.round(m * 100)}%</span></td><td class="num">${Math.round(b * 100)}%</td>`;
+    tr.innerHTML = `<td>${k === "ALL" ? "All regions" : k}</td><td class="num">${m.n}</td>` +
+      `<td class="num"><span class="${ca}">${pct(m.agree)}</span></td><td class="num dim">${pct(b.agree)}</td>` +
+      `<td class="num"><span class="${co}">${pct(m.opposite)}</span></td><td class="num dim">${pct(b.opposite)}</td>`;
     tb.appendChild(tr);
   }
 }
@@ -339,13 +370,17 @@ function renderScores() {
 // ------------------------------------------------------------ loading
 async function loadRun(tag) {
   const base = `data/${tag}/`;
-  const [meta, field, valley] = await Promise.all([
+  const [meta, field, valley, samples] = await Promise.all([
     fetch(base + "meta.json").then((r) => r.json()),
     fetch(base + "field.bin").then((r) => r.arrayBuffer()),
     fetch(base + "valley.bin").then((r) => r.arrayBuffer()),
+    fetch(base + "samples.bin").then((r) => r.arrayBuffer()),
   ]);
   state.meta = meta; state.field = new Int8Array(field); state.valley = new Int8Array(valley);
-  $("run-date").textContent = `Simulated day: ${meta.date} · clear sky, no synoptic wind`;
+  state.samples = new Int8Array(samples);
+  $("run-date").textContent = meta.params._model === "naive"
+    ? `Naive rule, no physics: along the nearest valley, up-valley while the sun is up · ${meta.date}`
+    : `Physical model · simulated day ${meta.date} · clear sky, no synoptic wind`;
   $("hour").max = meta.hours.length - 1;
   computeCycle();
   renderScores();
@@ -371,7 +406,7 @@ async function init() {
   for (const r of state.runs) {
     const o = document.createElement("option");
     o.value = r.tag;
-    o.textContent = `${r.tag} · ${Math.round(r.sign * 100)}% (naive ${Math.round(r.baseline * 100)}%)`;
+    o.textContent = `${r.tag} · agree ${Math.round(r.agree * 100)}% · opposite ${Math.round(r.opposite * 100)}%`;
     sel.appendChild(o);
   }
   sel.addEventListener("change", () => loadRun(sel.value));

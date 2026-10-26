@@ -38,11 +38,28 @@ Legend: [x] done · [ ] todo · [~] in progress
 - [ ] Sensitivity analysis: σ_valley, channel threshold, γ — report score spread, do not pick the best
 - [ ] Seasonal runs (May, July, September) and synoptic-wind caveat
 
+### Scoring criterion (user decision, 2026-10-26)
+Per sample: **agree** ≤ 45° off · **opposite** ≥ 135° off · across/calm otherwise.
+**Primary goal: opposite = 0** ("evict completely"). Across is tolerated. Legacy "sign" (< 90°) kept for reference.
+
+| run | agree | opposite | legacy sign |
+|---|---|---|---|
+| naive_up_valley (no physics) | 0.78 | **0.09** | 0.88 |
+| v2_sourced_params | 0.71 | **0.12** | 0.82 |
+
+v2 opposite breakdown vs naive: 5.9 % shared (pilots' breeze against the drainage:
+convergences, cols → neither model), 6.3 % **new flips caused by the physics** (basins,
+footprint leaking across ridges — Alpes du sud 129, Bauges 82, Chablais 59, Chartreuse 59),
+3.1 % naive errors fixed by v2 (Vercors 131).
+- [ ] Step 1: remove the 6.3 % physics-induced flips without losing the 3.1 % fixes
+      (mass continuity / watershed-aware footprint)
+- [ ] Step 2: the 5.9 % shared cases (through-valley convergences, pass/col winds)
+
 ### Validation (held-out — never tune on it)
-- [ ] `reference.py`: parse KML, recover direction from drawn arrowheads
-      (277/291 lines end with tip→barb→tip→barb), keep folder = region
-- [ ] `validate.py`: sample model wind along each line at 13–16 h solar,
-      score angular agreement & up/down-valley sign, per region
+- [x] `reference.py`: KML parsed, direction from drawn closed-triangle arrowheads (273/291 lines)
+- [x] `validate.py`: agree/opposite/across per sample at 13–16 h solar, per region, + naive baseline
+- [x] Naive model as a real run (`run_alps.py --model naive`), viewable in the web app
+- [x] `scripts/rescore.py` re-scores saved runs when the criterion changes
 - [ ] Look into the line colours in "Alpes du sud et Autres" (blue/pink/purple — meaning?)
 - [ ] Second independent set: Météo-France hourly valley stations (see `docs/data_sources.md`)
 - [ ] User review session on valleys the user knows → record verdicts in `docs/validation_log.md`

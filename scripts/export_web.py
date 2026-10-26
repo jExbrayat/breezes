@@ -1,9 +1,10 @@
 """Export model runs (out/<tag>/fields.npz) for the localhost map viewer.
 
 Writes, per run, web/data/<tag>/:
-  meta.json   hours, valley-arrow positions/axes, pilots' lines + per-hour agreement, scores
+  meta.json   hours, valley-arrow positions/axes, pilots' lines + sample geometry, scores
   field.bin   int8 [hour][u|v][row][col] near-surface wind on a lat/lon grid, m/s * FIELD_SCALE
   valley.bin  int8 [hour][arrow] signed valley wind, m/s * 10 (+ = up-valley)
+  samples.bin int8 [hour][sample] class of each pilots'-line sample: 1 agree, 0 across/calm, -1 opposite
 and web/data/runs.json listing all exported runs.
 All vectors are rotated from Lambert-93 grid north to true north (Web Mercator
 is conformal, so true east/north = screen right/up).
@@ -21,6 +22,8 @@ from breezes.dem import ALPS_BBOX, CRS, ROOT
 
 WEB = ROOT / "web"
 FIELD_SCALE = 4          # int8 units per m/s in field.bin (0.25 m/s steps, max ±31 m/s)
+SAMPLE_HALF_M = 200.0    # half-length of the drawn piece of pilots' line per sample (samples every 400 m)
+FORMAT = 2               # bump when the export layout changes; serve.py re-exports older runs
 DLAT, DLON = 0.01, 0.014  # ~1.1 km particle grid
 
 TO93 = Transformer.from_crs("EPSG:4326", CRS, always_xy=True)
@@ -99,23 +102,24 @@ def export(tag, g, T, lines, samples):
     day = datetime.fromisoformat(date).replace(tzinfo=timezone.utc)
     cest = [(day + timedelta(hours=int(i) + 2)).strftime("%H:%M") for i in order]
 
-    # per-hour agreement of each pilots' line with the model (mean cosine at samples)
+    # per-hour class of every reference sample: 1 agree, 0 across/calm, -1 opposite
     r, c, ok = validate.cells(g, samples[:, 1:3])
     S, r, c = samples[ok], r[ok], c[ok]
-    agree = []
-    for h in range(len(sh)):
-        uh, vh = u[h].astype(np.float32)[r, c], v[h].astype(np.float32)[r, c]
-        spd = np.hypot(uh, vh)
-        agree.append(np.where(spd > 0.3, (uh * S[:, 3] + vh * S[:, 4]) / np.maximum(spd, 1e-6), 0.0))
-    agree = np.array(agree)
-    ref = []
+    classes = np.stack([validate.classify(u[h].astype(np.float32)[r, c], v[h].astype(np.float32)[r, c],
+                                          S[:, 3], S[:, 4]) for h in range(len(sh))])
+    ref, ref_index = [], {}
     for i, L in enumerate(lines):
         if not L.head_ok:
             continue
-        m = S[:, 0] == i
+        ref_index[i] = len(ref)
         ref.append(dict(name=L.name, region=L.region,
-                        coords=[[round(la, 5), round(lo, 5)] for lo, la in L.lonlat],
-                        agree=np.round(agree[:, m].mean(1), 2).tolist() if m.any() else None))
+                        coords=[[round(la, 5), round(lo, 5)] for lo, la in L.lonlat]))
+    half = SAMPLE_HALF_M
+    lo0, la0 = TO84.transform(S[:, 1] - S[:, 3] * half, S[:, 2] - S[:, 4] * half)
+    lo1, la1 = TO84.transform(S[:, 1] + S[:, 3] * half, S[:, 2] + S[:, 4] * half)
+    sample_meta = dict(n=int(len(S)), line=[ref_index[int(i)] for i in S[:, 0]],
+                       lat0=np.round(la0, 5).tolist(), lon0=np.round(lo0, 5).tolist(),
+                       lat1=np.round(la1, 5).tolist(), lon1=np.round(lo1, 5).tolist())
 
     aft = (sh >= 13) & (sh <= 16)
     scores = validate.score(g, T, samples, lines, u[aft].astype(np.float32).mean(0),
@@ -127,11 +131,13 @@ def export(tag, g, T, lines, samples):
     d.mkdir(parents=True, exist_ok=True)
     field.tofile(d / "field.bin")
     vsp.tofile(d / "valley.bin")
-    meta = dict(tag=tag, date=date, hours=[round(float(h), 2) for h in sh], cest=cest,
-                field=fmeta, arrows=arrows, ref=ref, scores=scores, params=params)
+    classes.astype(np.int8).tofile(d / "samples.bin")
+    meta = dict(format=FORMAT, tag=tag, date=date, hours=[round(float(h), 2) for h in sh], cest=cest,
+                field=fmeta, arrows=arrows, ref=ref, samples=sample_meta, scores=scores, params=params,
+                criteria=dict(agree_deg=validate.AGREE_DEG, opposite_deg=validate.OPPOSITE_DEG,
+                              calm=validate.CALM))
     (d / "meta.json").write_text(json.dumps(meta, separators=(",", ":")))
-    return dict(tag=tag, date=date, sign=scores["ALL"]["model"]["sign"],
-                baseline=scores["ALL"]["baseline"]["sign"])
+    return scores["ALL"]
 
 
 def write_index():
@@ -139,8 +145,9 @@ def write_index():
     for m in sorted((WEB / "data").glob("*/meta.json")):
         meta = json.loads(m.read_text())
         src = ROOT / "out" / meta["tag"] / "fields.npz"
-        runs.append(dict(tag=meta["tag"], date=meta["date"], sign=meta["scores"]["ALL"]["model"]["sign"],
-                         baseline=meta["scores"]["ALL"]["baseline"]["sign"],
+        s = meta["scores"]["ALL"]["model"]
+        runs.append(dict(tag=meta["tag"], date=meta["date"], model=meta["params"].get("_model", "physics"),
+                         agree=s.get("agree"), opposite=s.get("opposite"), sign=s["sign"],
                          mtime=(src if src.exists() else m).stat().st_mtime))
     runs.sort(key=lambda r: -r["mtime"])        # most recent model run first
     (WEB / "data" / "runs.json").write_text(json.dumps(runs, indent=1))
@@ -159,8 +166,8 @@ def main(tags=None):
     lines = reference.load()
     samples = reference.sample(lines)
     for tag in tags:
-        info = export(tag, g, T, lines, samples)
-        print(f"exported {tag}: model {info['sign']:.2f} vs baseline {info['baseline']:.2f}")
+        m = export(tag, g, T, lines, samples)["model"]
+        print(f"exported {tag}: agree {m['agree']:.2f}, opposite {m['opposite']:.2f}")
     write_index()
 
 

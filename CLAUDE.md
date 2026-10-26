@@ -20,6 +20,11 @@ against breezes the user and paragliding pilots know in the French Alps.
   in TODO.md ("motivated by …") and re-score on a region it was not motivated by.
 - Prefer structural/physical fixes over per-region special cases. No
   hard-coded place names in model code.
+- **Scoring (user decision):** per reference sample, agree = within 45°,
+  opposite = 135° or more off, across/calm otherwise (`validate.py`).
+  **The objective is opposite = 0** — a breeze modelled in the opposite
+  direction is the one unacceptable error; across is tolerated. Always compare
+  against the naive run (`run_alps.py --model naive`: up the nearest valley).
 
 ## Layout
 ```

@@ -26,19 +26,24 @@ tiles, Leaflet and fonts.
   Click a bar to jump to that hour.
 - **Red / blue arrows**: valley winds (up-valley / down-valley). Length ∝ speed, thickness ∝ catchment size.
 - **Dark particles**: near-surface flow (slope winds + valley winds, ~1 km average).
-- **Magenta lines**: the pilots' breeze map, arrowhead = breeze direction. Hover a line for
-  its name; tick *Colour pilots' map by agreement* to colour each line green / amber / red by
-  how well the model matches it at the selected hour.
+- **Magenta lines**: the pilots' breeze map, arrowhead = breeze direction. Tick
+  *Colour pilots' map by agreement* to colour every 400 m piece of each line at the selected
+  hour: green = model within 45°, amber = across or calm, red = model blows the opposite way
+  (135° or more off; the error to eliminate). Hover a line for its counts.
 - **Click anywhere**: modelled wind speed and direction at that point.
 - **Layer button (top right)**: OpenTopoMap, IGN Plan, IGN orthophoto, Esri relief.
-- **Model run** selector: compare runs. The table scores each run against the pilots' map
-  (13–16 h solar) next to the naive rule "the breeze always blows up the nearest valley".
+- **Model run** selector: compare runs, including `naive_up_valley` (no physics: wind along the
+  nearest valley, up-valley while the sun is up). The table scores the selected run against the
+  pilots' map (13–16 h solar): *Agree* (higher is better) and *Opposite* (target 0 %), next to
+  the naive rule.
 
 ## Run the model
 
 ```bash
 uv run python scripts/run_alps.py --tag my_run            # full French Alps, 200 m, ~4 min
 uv run python scripts/run_alps.py --tag june --date 2026-06-21
+uv run python scripts/run_alps.py --model naive --tag naive_up_valley   # the no-physics reference
+uv run python scripts/rescore.py                          # re-score all saved runs
 ```
 
 The first run downloads the Copernicus DEM (~75 MB, no account needed).

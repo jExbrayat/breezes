@@ -1,12 +1,12 @@
 """Score model wind directions against the held-out reference map.
 
-Each reference sample is a point + drawn direction. Metrics on the model's
-near-surface wind at the sample's cell:
-  sign  : fraction with positive along-path component (|angle| < 90 deg)
-  hit45 : fraction within 45 deg
-  cos   : mean cosine of the angle (calm cells count as 0)
-A naive baseline ("always up the nearest valley axis") is scored alongside:
-the physics only earns its keep where it beats that baseline.
+Each reference sample is a point + drawn direction. The model's near-surface
+wind at the sample's cell is classified as
+  agree    : within AGREE_DEG of the drawn direction           (good enough)
+  opposite : within 180 - OPPOSITE_DEG of the reverse direction (the error to eliminate)
+  across   : anything in between, or calm (< CALM m/s)          (not counted as an error)
+Legacy metrics kept for comparison: sign (|angle| < 90 deg), cos (mean cosine).
+A naive baseline ("always up the nearest valley axis") is scored alongside.
 """
 from __future__ import annotations
 
@@ -14,6 +14,10 @@ import numpy as np
 
 from .dem import Grid
 from .terrain import Terrain
+
+AGREE_DEG = 45.0
+OPPOSITE_DEG = 135.0
+CALM = 0.3
 
 
 def cells(grid: Grid, xy):
@@ -24,11 +28,23 @@ def cells(grid: Grid, xy):
     return r, c, ok
 
 
-def _metrics(we, wn, de, dn, calm=0.3):
+def classify(we, wn, de, dn, calm=CALM):
+    """Per-sample class: 1 agree, 0 across/calm, -1 opposite."""
+    sp = np.hypot(we, wn)
+    cosang = (we * de + wn * dn) / np.maximum(sp, 1e-9)
+    cls = np.zeros(len(sp), np.int8)
+    cls[(sp > calm) & (cosang >= np.cos(np.radians(AGREE_DEG)))] = 1
+    cls[(sp > calm) & (cosang <= np.cos(np.radians(OPPOSITE_DEG)))] = -1
+    return cls
+
+
+def _metrics(we, wn, de, dn, calm=CALM):
     sp = np.hypot(we, wn)
     cosang = np.where(sp > calm, (we * de + wn * dn) / np.maximum(sp, 1e-9), 0.0)
-    return dict(n=len(cosang), sign=float(np.mean(cosang > 0)),
-                hit45=float(np.mean(cosang > np.cos(np.pi / 4))), cos=float(np.mean(cosang)))
+    cls = classify(we, wn, de, dn, calm)
+    return dict(n=len(cls), agree=float(np.mean(cls == 1)), opposite=float(np.mean(cls == -1)),
+                across=float(np.mean(cls == 0)), sign=float(np.mean(cosang > 0)),
+                cos=float(np.mean(cosang)))
 
 
 def score(grid: Grid, T: Terrain, samples, lines, u, v):
@@ -51,10 +67,13 @@ def score(grid: Grid, T: Terrain, samples, lines, u, v):
 
 
 def report(scores) -> str:
-    rows = [f"{'region':32s} {'n':>5s} | {'model sign':>10s} {'hit45':>6s} {'cos':>6s} | "
-            f"{'base sign':>9s} {'hit45':>6s} {'cos':>6s}"]
+    rows = [f"{'':32s} {'':>5s} | {'---- model ----':^20s} | {'---- naive ----':^20s}",
+            f"{'region':32s} {'n':>5s} | {'agree':>6s} {'OPPOS':>6s} {'sign':>6s} | "
+            f"{'agree':>6s} {'OPPOS':>6s} {'sign':>6s}"]
     for reg, d in scores.items():
         m, b = d["model"], d["baseline"]
-        rows.append(f"{reg[:32]:32s} {m['n']:5d} | {m['sign']:10.2f} {m['hit45']:6.2f} {m['cos']:6.2f} | "
-                    f"{b['sign']:9.2f} {b['hit45']:6.2f} {b['cos']:6.2f}")
+        rows.append(f"{reg[:32]:32s} {m['n']:5d} | {m['agree']:6.2f} {m['opposite']:6.2f} {m['sign']:6.2f} | "
+                    f"{b['agree']:6.2f} {b['opposite']:6.2f} {b['sign']:6.2f}")
+    rows.append(f"agree: within {AGREE_DEG:g} deg · OPPOS: >= {OPPOSITE_DEG:g} deg off (target 0) · "
+                f"sign: legacy < 90 deg")
     return "\n".join(rows)

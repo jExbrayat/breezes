@@ -46,7 +46,7 @@
       <label class="toggle"><input type="checkbox" id="show-arrows" checked> Valley winds <span class="dim">(arrows)</span></label>
       <label class="toggle"><input type="checkbox" id="show-particles" checked> Near-surface flow <span class="dim">(particles: slope + valley)</span></label>
       <label class="toggle"><input type="checkbox" id="show-ref" checked> Pilots' breeze map <span class="dim">(held-out reference)</span></label>
-      <label class="toggle"><input type="checkbox" id="show-agree"> Colour pilots' map by agreement</label>
+      <label class="toggle"><input type="checkbox" id="show-agree"> Colour pilots' map by agreement <span class="dim">(per point, this hour)</span></label>
     </section>
 
     <section class="block legend">
@@ -54,7 +54,9 @@
       <div class="leg"><span class="sw arrow up"></span> up-valley wind (anabatic system)</div>
       <div class="leg"><span class="sw arrow down"></span> down-valley wind (night drainage)</div>
       <div class="leg"><span class="sw ref"></span> pilots' map, arrow = breeze direction</div>
-      <div class="leg agree-leg"><span class="sw dot good"></span> agrees <span class="sw dot mid"></span> across / calm <span class="sw dot bad"></span> opposite</div>
+      <div class="leg"><span class="sw dot good"></span> model agrees (within 45°)</div>
+      <div class="leg"><span class="sw dot mid"></span> model across or calm</div>
+      <div class="leg"><span class="sw dot bad"></span> model opposite (135° or more off)</div>
       <p class="hint">Arrow length ∝ speed, thickness ∝ catchment size. Click the map for the modelled wind at a point.</p>
     </section>
 
@@ -62,11 +64,14 @@
       <h2 class="eyebrow">Agreement with pilots' map · 13–16 h solar</h2>
       <div class="table-wrap">
         <table id="scores">
-          <thead><tr><th>Region</th><th class="num">n</th><th class="num">Model</th><th class="num">Naive</th></tr></thead>
+          <thead>
+            <tr><th></th><th></th><th class="num" colspan="2">Agree ↑</th><th class="num" colspan="2">Opposite ↓</th></tr>
+            <tr><th>Region</th><th class="num">n</th><th class="num">run</th><th class="num">naive</th><th class="num">run</th><th class="num">naive</th></tr>
+          </thead>
           <tbody></tbody>
         </table>
       </div>
-      <p class="hint">Share of sample points where the modelled wind goes the drawn way. <b>Naive</b> = "breeze always blows up the nearest valley". The physics earns its keep only where it beats that.</p>
+      <p class="hint"><b>Agree</b>: modelled wind within 45° of the drawn breeze. <b>Opposite</b>: 135° or more off, the error to eliminate (target 0%). <b>Naive</b> = "breeze always blows up the nearest valley".</p>
     </section>
 
     <footer class="block credits">
